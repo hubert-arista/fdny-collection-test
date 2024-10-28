@@ -1,0 +1,15 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - aaa authentication #}
+{% if aaa_authentication is arista.avd.defined %}
+!
+{%     if aaa_authentication.login.default is arista.avd.defined %}
+aaa authentication login default {{ aaa_authentication.login.default }}
+{%     endif %}
+{%     if aaa_authentication.enable.default is arista.avd.defined %}
+aaa authentication enable default {{ aaa_authentication.enable.default }}
+{%     endif %}
+{% endif %}

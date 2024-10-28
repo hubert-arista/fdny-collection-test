@@ -1,0 +1,12 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - raw iosxe config #}
+{% if raw_iosxe_config is arista.avd.defined %}
+!
+{%     for line in raw_iosxe_config %}
+{{ line }}
+{%     endfor %}
+{% endif %}

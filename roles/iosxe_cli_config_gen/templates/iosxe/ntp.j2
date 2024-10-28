@@ -1,0 +1,27 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - ntp #}
+{% if ntp is arista.avd.defined %}
+!
+{%     if ntp.local_interface.name is arista.avd.defined %}
+{%         set ntp_int_cli = "ntp source" %}
+{%         set ntp_int_cli = ntp_int_cli ~ " " ~ ntp.local_interface.name %}
+{{ ntp_int_cli }}
+{%     endif %}
+{%     for server in ntp.servers | arista.avd.natural_sort('name') %}
+{%         if server.name is arista.avd.defined %}
+{%             set ntp_server_cli = "ntp server" %}
+{%             if server.vrf is arista.avd.defined and server.vrf != 'default' %}
+{%                 set ntp_server_cli = ntp_server_cli ~ " vrf " ~ server.vrf %}
+{%             endif %}
+{%             set ntp_server_cli = ntp_server_cli ~ " " ~ server.name %}
+{%             if server.preferred is arista.avd.defined(true) %}
+{%                 set ntp_server_cli = ntp_server_cli ~ " prefer" %}
+{%             endif %}
+{{ ntp_server_cli }}
+{%         endif %}
+{%     endfor %}
+{% endif %}

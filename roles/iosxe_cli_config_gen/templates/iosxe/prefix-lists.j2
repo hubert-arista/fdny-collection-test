@@ -1,0 +1,14 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - prefix lists #}
+{% for prefix_list in prefix_lists | arista.avd.natural_sort('name') %}
+!
+{%     for sequence in prefix_list.sequence_numbers | arista.avd.natural_sort('sequence') %}
+{%         if sequence.action is arista.avd.defined %}
+ip prefix-list {{ prefix_list.name }} seq {{ sequence.sequence }} {{ sequence.action }}
+{%         endif %}
+{%     endfor %}
+{% endfor %}

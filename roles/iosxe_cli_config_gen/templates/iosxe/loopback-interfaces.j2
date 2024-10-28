@@ -1,0 +1,25 @@
+{#
+ Copyright (c) 2023 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - loopback interfaces #}
+{% for loopback_interface in loopback_interfaces | arista.avd.natural_sort('name') %}
+{%     if loopback_interface.name is arista.avd.defined and loopback_interface.name == "Loopback0" %}
+{%         continue %}
+{%     endif %}
+!
+interface {{ loopback_interface.name }}
+{%     if loopback_interface.description is arista.avd.defined %}
+ description {{ loopback_interface.description }}
+{%     endif %}
+{%     if loopback_interface.shutdown is arista.avd.defined(true) %}
+ shutdown
+{%     endif %}
+{%     if loopback_interface.vrf is arista.avd.defined %}
+ vrf forwarding {{ loopback_interface.vrf }}
+{%     endif %}
+{%     if loopback_interface.ip_address is arista.avd.defined %}
+ ip address {{ loopback_interface.ip_address | arista.fdny_automation.cidr_to_ip_mask }}
+{%     endif %}
+{% endfor %}

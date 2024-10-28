@@ -1,0 +1,22 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - static routes #}
+{% if static_routes is arista.avd.defined %}
+!
+{%     for static_route in static_routes %}
+{%         set static_route_cli = "ip route" %}
+{%         if static_route.vrf is arista.avd.defined and static_route.vrf != 'default' %}
+{%             set static_route_cli = static_route_cli ~ " vrf " ~ static_route.vrf %}
+{%         endif %}
+{%         if static_route.destination_address_prefix is arista.avd.defined %}
+{%             set static_route_cli = static_route_cli ~ " " ~ static_route.destination_address_prefix %}
+{%         endif %}
+{%         if static_route.gateway is arista.avd.defined %}
+{%             set static_route_cli = static_route_cli ~ " " ~ static_route.gateway %}
+{%         endif %}
+{{ static_route_cli }}
+{%     endfor %}
+{% endif %}

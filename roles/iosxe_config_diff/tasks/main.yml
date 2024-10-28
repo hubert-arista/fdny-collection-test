@@ -1,0 +1,29 @@
+---
+- name: Fetch running config
+  cisco.ios.ios_command:
+    commands: show running-config
+  register: running_config
+
+- name: Set intended_config fact
+  set_fact:
+    intended_config: "{{ iosxe_config_dir }}/{{ inventory_hostname }}.cfg"
+
+- name: Perform diff between the intended config and running config
+  arista.fdny_automation.cisco_diff:
+    old_config_path: "{{ running_config.stdout[0] }}"
+    new_config_path: "{{ lookup('file', intended_config) }}"
+  register: diff_result
+
+- name: Create required output directories if not present
+  ansible.builtin.file:
+    path: "{{ diff_result_dir }}"
+    state: directory
+    mode: 0775
+  delegate_to: localhost
+  run_once: true
+
+- name: Save diff to diff_result.txt file
+  ansible.builtin.copy:
+    content: "{{ diff_result.diff_result }}"
+    dest: "{{ diff_result_dir }}/{{ inventory_hostname }}.diff"
+  delegate_to: localhost

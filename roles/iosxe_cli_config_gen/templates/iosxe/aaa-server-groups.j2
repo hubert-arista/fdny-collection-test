@@ -1,0 +1,14 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - aaa server groups #}
+{% if aaa_server_groups is arista.avd.defined %}
+{%     for aaa_server_group in aaa_server_groups %}
+{%         if aaa_server_group.type is arista.avd.defined and aaa_server_group.name is arista.avd.defined %}
+!
+aaa group server {{ aaa_server_group.type }} {{ aaa_server_group.name }}
+{%         endif %}
+{%     endfor %}
+{% endif %}

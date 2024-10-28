@@ -1,0 +1,26 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - dhcp servers #}
+{% if dhcp_servers is arista.avd.defined %}
+{%     for dhcp_server in dhcp_servers | arista.avd.natural_sort("vrf") %}
+!
+{%         for address in dhcp_server._excluded_addresses %}
+{%             if address.end is defined %}
+ip dhcp excluded-address vrf {{ dhcp_server.vrf }} {{ address.begin }} {{ address.end }}
+{%             else %}
+ip dhcp excluded-address vrf {{ dhcp_server.vrf }} {{ address.begin }}
+{%             endif %}
+{%         endfor %}
+{%         for subnet in dhcp_server.subnets | arista.avd.natural_sort %}
+!
+ip dhcp pool {{ subnet.name }}
+ vrf {{ dhcp_server.vrf }}
+ network {{ subnet.subnet | arista.fdny_automation.cidr_to_ip_mask }}
+ dns-server {{ subnet.dns_servers | join(" ") }}
+ default-router {{ subnet.default_gateway }}
+{%         endfor %}
+{%     endfor %}
+{% endif %}

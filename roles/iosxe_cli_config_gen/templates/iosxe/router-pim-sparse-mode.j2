@@ -1,0 +1,14 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - router pim sparse mode #}
+{% if router_pim_sparse_mode is arista.avd.defined %}
+!
+{%     for vrf in router_pim_sparse_mode.vrfs | arista.avd.natural_sort('name') %}
+{%         for rp_address in vrf.ipv4.rp_addresses | arista.avd.natural_sort('address') %}
+ip pim vrf {{ vrf.name }} rp-address {{ rp_address.address }}
+{%         endfor %}
+{%     endfor %}
+{% endif %}

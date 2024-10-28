@@ -1,0 +1,21 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - tacacs servers #}
+{% if tacacs_servers is arista.avd.defined %}
+!
+{%     for host in tacacs_servers.hosts %}
+tacacs server {{ host.name }}
+{%         if host.host is arista.avd.defined %}
+ address ipv4 {{ host.host }}
+{%         endif %}
+{%         if host.key is arista.avd.defined %}
+ key {{ host.key_type | arista.avd.default('7') }} {{ host.key }}
+{%         endif %}
+{%         if host.timeout is arista.avd.defined %}
+ timeout {{ host.timeout }}
+{%         endif %}
+{%     endfor %}
+{% endif %}

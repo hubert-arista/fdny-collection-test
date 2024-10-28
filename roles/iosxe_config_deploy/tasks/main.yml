@@ -1,0 +1,21 @@
+---
+- name: Get current timestamp
+  set_fact:
+    current_timestamp: "{{ now(utc=true, fmt='%Y-%m-%dT%H:%M:%S:%f') }}" # Get current timestamp in iso8601 format
+  when: proceed
+
+- name: Copy a configuration file over using SCP
+  ansible.builtin.command: >
+    sshpass -p {{ ansible_password }}
+    scp -O {{ iosxe_config_dir }}/{{ inventory_hostname }}.cfg {{ ansible_user }}@{{ ansible_host }}:flash:{{ inventory_hostname }}_{{ current_timestamp }}.txt
+  delegate_to: localhost
+  when: proceed
+
+- name: Perform config replace
+  ansible.netcommon.cli_command:
+    command: config replace flash:{{ inventory_hostname }}_{{ current_timestamp }}.txt
+    prompt: 
+      - .*  # Regex to match any prompt
+    answer: 'Y'
+    newline: true
+  when: proceed

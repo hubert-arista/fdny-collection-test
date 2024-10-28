@@ -1,0 +1,31 @@
+# Copyright (c) 2023 Arista Networks, Inc.
+# Use of this source code is governed by the Apache License 2.0
+# that can be found in the LICENSE file.
+---
+- name: Create required output directories if not present
+  tags: [build, provision]
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0775
+  loop:
+    - "{{ structured_dir }}"
+    - "{{ iosxe_config_dir }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Include device intended structure configuration variables
+  tags: [build, provision]
+  ansible.builtin.include_vars:
+    file: "{{ filename }}"
+  delegate_to: localhost
+  # when: structured_config is not defined and lookup('first_found', filename, skip=True, errors='ignore')
+  vars:
+    filename: "{{ structured_dir }}/{{ inventory_hostname }}.{{ avd_structured_config_file_format }}"
+
+- name: Generate iosxe intended configuration
+  ansible.builtin.template:
+    src: iosxe-intended-config.j2
+    dest: "{{ iosxe_config_dir }}/{{ inventory_hostname }}.cfg"
+    mode: 0664
+  delegate_to: localhost

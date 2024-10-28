@@ -1,0 +1,15 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - stack type #}
+{% if stack_type is arista.avd.defined %}
+!
+{%     if stack_type is arista.avd.defined and stack_type in [24, 48] %}
+switch 1 provision c9300-{{ stack_type }}u
+switch 2 provision c9300x-{{ stack_type }}hx
+{%     else %}
+{{ stack_type | arista.fdny_automation.raise_stack_type_error }}
+{%     endif %}
+{% endif %}

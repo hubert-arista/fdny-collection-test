@@ -1,0 +1,24 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - ip client source-interfaces #}
+{% if ip_ftp_client_source_interfaces is arista.avd.defined
+      or ip_http_client_source_interfaces is arista.avd.defined
+      or ip_ssh_client_source_interfaces is arista.avd.defined
+      or ip_telnet_client_source_interfaces is arista.avd.defined
+      or ip_tftp_client_source_interfaces is arista.avd.defined %}
+!
+{%     if ip_ssh_client_source_interfaces is arista.avd.defined %}
+{%         for ip_ssh_client_source_interface in ip_ssh_client_source_interfaces | arista.avd.natural_sort %}
+{%             if ip_ssh_client_source_interface.name is arista.avd.defined %}
+{%                 set ip_ssh_client_cli = "ip ssh source-interface " ~ ip_ssh_client_source_interface.name | capitalize %}
+{%                 if ip_ssh_client_source_interface.vrf is arista.avd.defined %}
+{%                     set ip_ssh_client_cli = ip_ssh_client_cli ~ " vrf " ~ ip_ssh_client_source_interface.vrf %}
+{%                 endif %}
+{{ ip_ssh_client_cli }}
+{%             endif %}
+{%         endfor %}
+{%     endif %}
+{% endif %}

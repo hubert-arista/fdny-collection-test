@@ -1,0 +1,13 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - vlan internal order #}
+{% if  vlan_internal_order.allocation is arista.avd.defined
+   and vlan_internal_order.range.beginning is arista.avd.defined
+   and vlan_internal_order.range.ending is arista.avd.defined %}
+!
+system vlan {{ vlan_internal_order.range.beginning }} to {{ vlan_internal_order.range.ending }} reserve
+vlan internal allocation policy {{ vlan_internal_order.allocation }}
+{% endif %}

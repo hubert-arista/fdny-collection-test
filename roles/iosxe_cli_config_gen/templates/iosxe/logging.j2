@@ -1,0 +1,46 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - logging #}
+{% if logging is arista.avd.defined %}
+!
+{%     if logging.buffered.level is arista.avd.defined('disabled') %}
+no logging buffered
+{%     elif logging.buffered.size is arista.avd.defined or logging.buffered.level is arista.avd.defined %}
+{%         set logging_buffered_cli = "logging buffered" %}
+{%         if logging.buffered.level is arista.avd.defined  %}
+{%             set logging_buffered_cli = logging_buffered_cli ~ " " ~ logging.buffered.level %}
+{%         endif %}
+{{ logging_buffered_cli }}
+{%     endif %}
+{%     if logging.console is arista.avd.defined('disabled') %}
+no logging console
+{%     elif logging.console is arista.avd.defined %}
+logging console {{ logging.console }}
+{%     endif %}
+{%     if logging.trap is arista.avd.defined('disabled') %}
+no logging trap
+{%     elif logging.trap is arista.avd.defined %}
+logging trap {{ logging.trap }}
+{%     endif %}
+{%     if logging._cisco_origin_id is arista.avd.defined('disabled') %}
+no logging origin-id
+{%     elif logging._cisco_origin_id is arista.avd.defined %}
+logging origin-id {{ logging._cisco_origin_id }}
+{%     endif %}
+{%     for vrf in logging.vrfs | arista.avd.natural_sort('name') %}
+{%         set logging_cli = "logging" %}
+{%         if vrf.source_interface is arista.avd.defined %}
+{%             set logging_cli = logging_cli ~ " source-interface " ~ vrf.source_interface %}
+{%             if vrf.name != "default" %}
+{%                 set logging_cli = logging_cli ~ " vrf " ~ vrf.name %}
+{%             endif %}
+{{ logging_cli }}
+{%         endif %}
+{%         for host in vrf.hosts | arista.avd.natural_sort('ip_address') %}
+logging host {{ host.name }} vrf {{ vrf.name }}
+{%         endfor %}
+{%     endfor %}
+{% endif %}

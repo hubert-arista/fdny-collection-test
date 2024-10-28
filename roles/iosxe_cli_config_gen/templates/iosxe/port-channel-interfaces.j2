@@ -1,0 +1,36 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - port channel interfaces #}
+{% for port_channel_interface in port_channel_interfaces | arista.avd.natural_sort('name') %}
+!
+{# iosxe expects a lowercase "c" in interface name "Port-Channel" #}
+interface {{ port_channel_interface.name | replace('Port-Channel', 'Port-channel') }}
+{%     if port_channel_interface.description is arista.avd.defined %}
+ description {{ port_channel_interface.description }}
+{%     endif %}
+{%     if port_channel_interface.shutdown is arista.avd.defined(true) %}
+ shutdown
+{%     elif port_channel_interface.shutdown is arista.avd.defined(false) %}
+ no shutdown
+{%     endif %}
+{%     if port_channel_interface.mtu is arista.avd.defined %}
+ mtu {{ port_channel_interface.mtu }}
+{%     endif %}
+{%     if port_channel_interface.type is arista.avd.defined("routed") %}
+ no switchport
+{%     elif port_channel_interface.type is arista.avd.defined("switched") %}
+ switchport
+{%     endif %}
+{%     if port_channel_interface.vlans is arista.avd.defined and port_channel_interface.mode is arista.avd.defined and port_channel_interface.mode in ["access", "dot1q-tunnel"] %}
+ switchport access vlan {{ port_channel_interface.vlans }}
+{%     endif %}
+{%     if port_channel_interface.vlans is arista.avd.defined and port_channel_interface.mode is arista.avd.defined("trunk") %}
+ switchport trunk allowed vlan {{ port_channel_interface.vlans }}
+{%     endif %}
+{%     if port_channel_interface.mode is arista.avd.defined and port_channel_interface.mode != "access" %}
+ switchport mode {{ port_channel_interface.mode }}
+{%     endif %}
+{% endfor %}

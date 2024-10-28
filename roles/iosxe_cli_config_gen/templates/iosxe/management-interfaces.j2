@@ -1,0 +1,24 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - management interfaces #}
+{% for management_interface in management_interfaces | arista.avd.natural_sort('name') %}
+!
+interface {{ management_interface.name }}
+{%     if management_interface.description is arista.avd.defined %}
+ description {{ management_interface.description }}
+{%     endif %}
+{%     if management_interface.shutdown is arista.avd.defined(true) %}
+ shutdown
+{%     elif management_interface.shutdown is arista.avd.defined(false) %}
+ no shutdown
+{%     endif %}
+{%     if management_interface.vrf is arista.avd.defined and management_interface.vrf != 'default' %}
+ vrf {{ management_interface.vrf }}
+{%     endif %}
+{%     if management_interface.ip_address is arista.avd.defined %}
+ ip address {{ management_interface.ip_address }}
+{%     endif %}
+{% endfor %}

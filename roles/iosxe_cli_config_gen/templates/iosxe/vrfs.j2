@@ -1,0 +1,27 @@
+{#
+ Copyright (c) 2023 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - vrfs #}
+{% if vrfs is arista.avd.defined %}
+{% for vrf in vrfs | arista.avd.natural_sort('name') %}
+{%     if vrf.name is arista.avd.defined("MGMT") %}
+{%         continue %}
+{%     endif %}
+!
+vrf definition {{ vrf.name }}
+{%     if vrf.description is arista.avd.defined %}
+ description {{ vrf.description }}
+{%     endif %}
+{%     if vrf._cisco_rd is arista.avd.defined %}
+ rd {{ vrf._cisco_rd }}
+{%     endif %}
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+{% endfor %}
+{% endif %}

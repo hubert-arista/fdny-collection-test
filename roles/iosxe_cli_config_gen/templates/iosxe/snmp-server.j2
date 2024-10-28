@@ -1,0 +1,119 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - snmp server #}
+{% if snmp_server is arista.avd.defined %}
+!
+{%     if snmp_server.engine_ids.local is arista.avd.defined %}
+snmp-server engineID local {{ snmp_server.engine_ids.local }}
+{%     endif %}
+{%     if snmp_server.groups is arista.avd.defined %}
+{%         for group in snmp_server.groups %}
+{%             if group.name is arista.avd.defined %}
+{%                 set group_cli = "snmp-server group " ~ group.name %}
+{%             endif %}
+{%             if group.version is arista.avd.defined %}
+{%                 set group_cli = group_cli ~ " " ~ group.version %}
+{%             endif %}
+{%             if group.authentication is arista.avd.defined and group.version is arista.avd.defined('v3') %}
+{%                 set group_cli = group_cli ~ " " ~ group.authentication %}
+{%             endif %}
+{%             if group.read is arista.avd.defined %}
+{%                 set group_cli = group_cli ~ " read " ~ group.read %}
+{%             endif %}
+{%             if group.write is arista.avd.defined %}
+{%                 set group_cli = group_cli ~ " write " ~ group.write %}
+{%             endif %}
+{%             if group.notify is arista.avd.defined %}
+{%                 set group_cli = group_cli ~ " notify " ~ group.notify %}
+{%             endif %}
+{{ group_cli }}
+{%         endfor %}
+{%     endif %}
+{%     if snmp_server.users is arista.avd.defined %}
+{%         for user in snmp_server.users %}
+{%             if user.name is arista.avd.defined %}
+{%                 set user_cli = "snmp-server user " ~ user.name %}
+{%             endif %}
+{%             if user.group is arista.avd.defined %}
+{%                 set user_cli = user_cli ~ " " ~ user.group %}
+{%             endif %}
+{%             if user.version is arista.avd.defined %}
+{%                 set user_cli = user_cli ~ " " ~ user.version %}
+{%             endif %}
+{%             if user.auth is arista.avd.defined %}
+{%                 set user_cli = user_cli ~ " auth " ~ user.auth %}
+{%             endif %}
+{%             if user.auth_passphrase is arista.avd.defined %}
+{%                 set user_cli = user_cli ~ " " ~ user.auth_passphrase %}
+{%             endif %}
+{%             if user.priv is arista.avd.defined %}
+{%                 set user_cli = user_cli ~ " priv " ~ user.priv %}
+{%             endif %}
+{%             if user.priv_passphrase is arista.avd.defined %}
+{%                 set user_cli = user_cli ~ " " ~ user.priv_passphrase %}
+{%             endif %}
+{{ user_cli }}
+{%         endfor %}
+{%     endif %}
+{%     if snmp_server.views is arista.avd.defined %}
+{%         for view in snmp_server.views %}
+{%             if view.name is arista.avd.defined %}
+{%                 set view_cli = "snmp-server view " ~ view.name %}
+{%             endif %}
+{%             if view.mib_family_name is arista.avd.defined %}
+{%                 set view_cli = view_cli ~ " " ~ view.mib_family_name %}
+{%             endif %}
+{%             if view.included is arista.avd.defined(true) %}
+{%                 set view_cli = view_cli ~ " included" %}
+{%             elif view.included is arista.avd.defined(false) %}
+{%                 set view_cli = view_cli ~ " excluded" %}
+{%             endif %}
+{{ view_cli }}
+{%         endfor %}
+{%     endif %}
+{%     if snmp_server.local_interfaces is arista.avd.defined %}
+{%         for local_interface in snmp_server.local_interfaces %}
+snmp-server trap-source {{ local_interface.name }}
+snmp-server source-interface informs {{ local_interface.name }}
+{%         endfor %}
+{%     endif %}
+{%     if snmp_server.location is arista.avd.defined %}
+snmp-server location {{ snmp_server.location }}
+{%     endif %}
+{%     if snmp_server.contact is arista.avd.defined %}
+snmp-server contact {{ snmp_server.contact }}
+{%     endif %}
+{%     for snmp_trap in snmp_server.traps.snmp_traps %}
+{%         if snmp_trap.enabled is arista.avd.defined(false) %}
+no snmp-server enable traps {{ snmp_trap.name }}
+{%         else %}
+snmp-server enable traps {{ snmp_trap.name }}
+{%         endif %}
+{%     endfor %}
+{%     if snmp_server.hosts is arista.avd.defined %}
+{%         for host in snmp_server.hosts %}
+{%             if host.host is arista.avd.defined %}
+{%                 set host_cli = "snmp-server host " ~ host.host %}
+{%                 if host.vrf is arista.avd.defined %}
+{%                     set host_cli = host_cli ~ " vrf " ~ host.vrf %}
+{%                 endif %}
+{%                 if host.users is arista.avd.defined
+                      and host.version | arista.avd.default('3') | string == '3' %}
+{%                     for user in host.users %}
+{%                         if user.username is arista.avd.defined
+                              and user.authentication_level is arista.avd.defined %}
+{{ host_cli }} informs version 3 {{ user.authentication_level }} {{ user.username }}
+{{ host_cli }} version 3 {{ user.authentication_level }} {{ user.username }}
+{%                         endif %}
+{%                     endfor %}
+{%                 elif host.community is arista.avd.defined
+                        and host.version | arista.avd.default('2c') | string in ['1', '2c'] %}
+{{ host_cli }} version {{ host.version | arista.avd.default('2c') }} {{ host.community }}
+{%                 endif %}
+{%             endif %}
+{%         endfor %}
+{%     endif %}
+{% endif %}

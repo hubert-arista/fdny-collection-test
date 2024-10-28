@@ -1,0 +1,34 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - vlan interfaces #}
+{% for vlan_interface in vlan_interfaces | arista.avd.natural_sort('name') %}
+!
+interface {{ vlan_interface.name }}
+{%     if vlan_interface.description is arista.avd.defined %}
+ description {{ vlan_interface.description }}
+{%     endif %}
+{%     if vlan_interface.vrf is arista.avd.defined %}
+ vrf forwarding {{ vlan_interface.vrf }}
+{%     endif %}
+{%     if vlan_interface.ip_address is arista.avd.defined %}
+ ip address {{ vlan_interface.ip_address | arista.fdny_automation.cidr_to_ip_mask }}
+{%     endif %}
+{%     if vlan_interface.mtu is arista.avd.defined %}
+ ip mtu {{ vlan_interface.mtu }}
+{%     endif %}
+{%     if vlan_interface.no_autostate is arista.avd.defined(true) %}
+ no autostate
+{%     endif %}
+{%     if vlan_interface.pim.ipv4.sparse_mode is arista.avd.defined(true) %}
+ ip pim sparse-mode
+{%     endif %}
+{%     if vlan_interface.shutdown is arista.avd.defined(true) %}
+ shutdown
+{%     endif %}
+{%     if vlan_interface.eos_cli is arista.avd.defined %}
+ {{ vlan_interface.eos_cli | indent(3, false) }}
+{%     endif %}
+{% endfor %}

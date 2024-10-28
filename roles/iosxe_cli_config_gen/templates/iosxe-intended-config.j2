@@ -1,0 +1,247 @@
+{#
+ Copyright (c) 2023 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# Device Configuration #}
+{# context used to hide password and keys #}
+{#                                                              #}
+{# ============================================================ #}
+{#                                                              #}
+version 17.9
+service timestamps debug datetime localtime show-timezone
+service timestamps log datetime localtime show-timezone
+service password-encryption
+service call-home
+platform punt-keepalive disable-kernel-core
+{# hostname #}
+{% include 'iosxe/hostname.j2' %}
+!
+!
+{# VRF Instances #}
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+{% include 'iosxe/vrfs.j2' %}
+{% include 'iosxe/logging.j2' %}
+!
+aaa new-model
+!
+{# AAA server groups #}
+{% include 'iosxe/aaa-server-groups.j2' %}
+ server name TACACS1
+ server name TACACS2
+ ip vrf forwarding MDMZ
+ ip tacacs source-interface Loopback100
+{# AAA authentication #}
+{% include 'iosxe/aaa-authentication.j2' %}
+{# AAA authorization #}
+{% include 'iosxe/aaa-authorization.j2' %}
+aaa accounting update newinfo periodic 2880
+{# AAA accounting #}
+{% include 'iosxe/aaa-accounting.j2' %}
+aaa accounting network default start-stop group TACACS_Servers
+aaa accounting connection default start-stop group TACACS_Servers
+!
+!
+aaa session-id common
+clock timezone EST -5 0
+clock summer-time EDT recurring
+boot system switch all flash:packages.conf
+software auto-upgrade enable
+{# Stack type #}
+{% include 'iosxe/stack-type.j2' %}
+!
+!
+!
+{# IP routing #}
+{% include 'iosxe/ip-routing.j2' %}
+{# Router multicast #}
+{% include 'iosxe/router-multicast.j2' %}
+{# IP name servers #}
+{% include 'iosxe/ip-name-servers.j2' %}
+{# IP domain lookup #}
+{% include 'iosxe/ip-domain-lookup.j2' %}
+!
+ip domain name net.fdny.org
+ip domain name vrf VRFA net.fdny.org
+ip domain name vrf VRFB net.fdny.org
+ip domain name vrf VRFC net.fdny.org
+ip domain name vrf VRFD net.fdny.org
+ip domain name vrf VRFE net.fdny.org
+ip domain name vrf VRFT net.fdny.org
+{# DHCP servers #}
+{% include 'iosxe/dhcp-servers.j2' %}
+!
+login on-success log
+ipv6 unicast-routing
+vtp mode transparent
+vtp version 1
+{% include 'iosxe/crypto.j2' %}
+!
+license boot level network-advantage addon dna-advantage
+memory free low-watermark processor 130905
+!
+hw-module switch 2 upoe-plus
+!
+system mtu 9198
+diagnostic bootup level minimal
+{# Spanning tree #}
+{% include 'iosxe/spanning-tree.j2' %}
+spanning-tree loopguard default
+spanning-tree portfast bpduguard default
+spanning-tree extend system-id
+!
+errdisable recovery interval 30
+!
+{% include 'iosxe/local-users.j2' %}
+!
+redundancy
+ mode sso
+!
+crypto engine compliance shield disable
+!
+transceiver type all
+ monitoring
+!
+{# VLANs #}
+{% include 'iosxe/vlans.j2' %}
+{# LLDP #}
+{% include 'iosxe/lldp.j2' %}
+!
+class-map match-any system-cpp-police-ewlc-control
+  description EWLC Control
+class-map match-any system-cpp-police-topology-control
+  description Topology control
+class-map match-any system-cpp-police-sw-forward
+  description Sw forwarding, L2 LVX data packets, LOGGING, Transit Traffic
+class-map match-any system-cpp-default
+  description EWLC Data, Inter FED Traffic
+class-map match-any system-cpp-police-sys-data
+  description Openflow, Exception, EGR Exception, NFL Sampled Data, RPF Failed
+class-map match-any system-cpp-police-punt-webauth
+  description Punt Webauth
+class-map match-any system-cpp-police-l2lvx-control
+  description L2 LVX control packets
+class-map match-any system-cpp-police-forus
+  description Forus Address resolution and Forus traffic
+class-map match-any system-cpp-police-multicast-end-station
+  description MCAST END STATION
+class-map match-any system-cpp-police-high-rate-app
+  description High Rate Applications
+class-map match-any system-cpp-police-multicast
+  description MCAST Data
+class-map match-any system-cpp-police-l2-control
+  description L2 control
+class-map match-any system-cpp-police-dot1x-auth
+  description DOT1X Auth
+class-map match-any system-cpp-police-data
+  description ICMP redirect, ICMP_GEN and BROADCAST
+class-map match-any system-cpp-police-stackwise-virt-control
+  description Stackwise Virtual OOB
+class-map match-any non-client-nrt-class
+class-map match-any system-cpp-police-routing-control
+  description Routing control and Low Latency
+class-map match-any system-cpp-police-protocol-snooping
+  description Protocol snooping
+class-map match-any system-cpp-police-dhcp-snooping
+  description DHCP snooping
+class-map match-any system-cpp-police-ios-routing
+  description L2 control, Topology control, Routing control, Low Latency
+class-map match-any system-cpp-police-system-critical
+  description System Critical and Gold Pkt
+class-map match-any system-cpp-police-ios-feature
+  description ICMPGEN,BROADCAST,ICMP,L2LVXCntrl,ProtoSnoop,PuntWebauth,MCASTData,Transit,DOT1XAuth,Swfwd,LOGGING,L2LVXData,ForusTraffic,ForusARP,McastEndStn,Openflow,Exception,EGRExcption,NflSampled,RpfFailed
+!
+policy-map system-cpp-policy
+!
+{# Loopback interfaces #}
+{% include 'iosxe/loopback-interfaces.j2' %}
+{# Ethernet interfaces #}
+{% include 'iosxe/ethernet-interfaces.j2' %}
+{# Port-channel interfaces #}
+{% include 'iosxe/port-channel-interfaces.j2' %}
+!
+interface Vlan1
+ no ip address
+ shutdown
+{# VLAN interfaces #}
+{% include 'iosxe/vlan-interfaces.j2' %}
+{# Router BGP #}
+{% include 'iosxe/router-bgp.j2' %}
+!
+ip forward-protocol nd
+no ip http server
+ip http authentication local
+no ip http secure-server
+{# Router pim sparse mode #}
+{% include 'iosxe/router-pim-sparse-mode.j2' %}
+{# IP tacacs source interfaces #}
+{% include 'iosxe/ip-tacacs-source-interfaces.j2' %}
+{# IP client source interfaces #}
+{% include 'iosxe/ip-client-source-interfaces.j2' %}
+ip ssh source-interface Loopback100
+ip ssh version 2
+ip scp server enable
+!
+ip bgp-community new-format
+{# IP community lists #}
+{% include 'iosxe/ip-community-lists.j2' %}
+{# IP standard access lists #}
+{% include 'iosxe/standard-access-lists.j2' %}
+{# IP access lists #}
+{% include 'iosxe/access-lists.j2' %}
+{# Prefix lists #}
+{% include 'iosxe/prefix-lists.j2' %}
+{# Route maps #}
+{% include 'iosxe/route-maps.j2' %}
+{# Route maps #}
+{% include 'iosxe/snmp-server.j2' %}
+{# Tacacs servers #}
+{% include 'iosxe/tacacs-servers.j2' %}
+{# Banners #}
+{% include 'iosxe/banners.j2' %}
+!
+control-plane
+ service-policy input system-cpp-policy
+!
+{# Aliases #}
+{% include 'iosxe/aliases.j2' %}
+!
+line con 0
+ session-timeout 10
+ transport output ssh
+ stopbits 1
+line vty 0 4
+ session-timeout 10
+ access-class VTY-ACCESS in vrfname MDMZ
+ access-class VTY-ACCESS in vrfname VRFM
+ transport input ssh
+ transport output ssh
+line vty 5 97
+ session-timeout 10
+ access-class VTY-ACCESS in vrfname MDMZ
+ access-class VTY-ACCESS in vrfname VRFM
+ transport input ssh
+ transport output ssh
+!
+call-home
+ ! If contact email address in call-home is configured as sch-smart-licensing@cisco.com
+ ! the email address configured in Cisco Smart License Portal will be used as contact email address to send SCH notifications.
+ contact-email-addr sch-smart-licensing@cisco.com
+ profile "CiscoTAC-1"
+  active
+  destination transport-method http
+{# NTP #}
+{% include 'iosxe/ntp.j2' %}
+ntp access-group peer NTP_ACL
+{# Raw IOS-XE config #}
+{% include 'iosxe/raw-iosxe-config.j2' %}
+!
+!
+! END
+!

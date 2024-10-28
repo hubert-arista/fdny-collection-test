@@ -1,0 +1,22 @@
+{#
+ Copyright (c) 2023-2024 Arista Networks, Inc.
+ Use of this source code is governed by the Apache License 2.0
+ that can be found in the LICENSE file.
+#}
+{# iosxe - ip name servers #}
+!
+{% set unique_vrfs = [] %}
+{% for name_server in ip_name_servers %}
+{%     if name_server.vrf not in unique_vrfs %}
+{%     set _ = unique_vrfs.append(name_server.vrf) %}
+{%     endif %}
+{% endfor %}
+{% for unique_vrf in unique_vrfs | arista.avd.natural_sort() %}
+{%     set ips_in_vrf = [] %}
+{%     for name_server in ip_name_servers | arista.avd.natural_sort('ip_address') %}
+{%         if name_server.vrf == unique_vrf %}
+{%             set _ = ips_in_vrf.append(name_server.ip_address) %}
+{%         endif %}
+{%     endfor %}
+ip name-server vrf {{ unique_vrf }} {{ ips_in_vrf | join(" ")}}
+{% endfor %}
